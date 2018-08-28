@@ -1,0 +1,23 @@
+												Interactive User Defined Shell
+
+1)Shell Prompt with username and Operating system name appears.Current directory also appears.
+  First time when shell is invoked,that directory is considered root or "~",and hence any inner directories follow pattern from here.
+
+2)pwd
+  - Shows currect working directory with respect to root directory of system(not shell)
+
+3)echo 
+  INPUT                                                                 OUTPUT 
+  echo argument                                        ->               argument
+  echo arg1        arg2                                ->               arg1 arg2
+  echo "arg1          arg2"                            ->               arg1          arg2
+  echo 'arg1          arg2'                            ->               arg1          arg2
+
+4)ls
+  INPUT                                                                 OUTPUT 
+  ls                                                   ->               (Regular ls output)
+  ls file1 file2 file3....                             ->               (ls output on each file-any number of arguments)
+  ls dir file file2                                    ->               (ls output within dir and on each file)
+  ls -[al]                                             ->               (Works on individual file also)
+  																		(Hidden files appear only with -a flag)
+  																		(Output looks exactly like original shell)
