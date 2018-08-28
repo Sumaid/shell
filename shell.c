@@ -18,6 +18,25 @@ char shell_home[1024];
 char mon[4];
 char *shell_prompt;
 char *input;
+typedef struct command_struct
+{
+	char *command;
+	char *flags[1024];
+	char *arguments[1024];
+	int flags_index;
+	int arguments_index;
+} command_struct;
+
+command_struct parsed; 
+
+void print_command(){
+	printf("command is %s\n", parsed.command);
+	int i,j;
+	for (i=0; i<parsed.flags_index; i++)
+		printf("flag is %s\n", parsed.flags[i]);
+	for (j=0; j<parsed.arguments_index; j++)
+		printf("argument is %s\n", parsed.arguments[j]);
+}
 
 int is_small(char c)
 {
@@ -112,16 +131,7 @@ void Mon(int num){
 	}
 }
 
-typedef struct command_struct
-{
-	char *command;
-	char *flags[1024];
-	char *arguments[1024];
-	int flags_index;
-	int arguments_index;
-} command_struct;
 
-command_struct parsed; 
 
 void shell_dir(){
 	char temp[1024];
@@ -254,6 +264,7 @@ void full_ls_file(char* file, int a, int max){
 }
 
 void full_ls(char* path, int a){
+	printf("Hurray\n");
 	DIR * curdir1 = opendir(path);
     struct dirent *curfile;
     struct dirent *curfile1;
@@ -276,6 +287,8 @@ void full_ls(char* path, int a){
 }
 
 void ls(){
+	printf("Hurray ls\n");
+	print_command();
     struct stat curstat;
     int l = 0;
     int a = 0;
@@ -404,18 +417,60 @@ void parse_input(){
 }
 
 void execute_input(){
-	if (!strcmp(parsed.command,"cd"))
-		cd();
-	else if (!strcmp(parsed.command,"pwd"))
-		pwd();
-	else if (!strcmp(parsed.command,"echo"))
-		echo();
-	else if (!strcmp(parsed.command,"ls"))
-		ls();
-	else if(!strcmp(parsed.command,"exit"))
-	    exit(0);
-	else
-		system(input);
+		int status;
+		pid_t pid = fork(), w;
+
+		if (pid>0)
+		{
+//			printf("Parent Process\n");
+			if (waitpid (pid, &status, 0) != pid)
+      			status = -1;
+		}
+		else if (pid==0)
+		{
+//			printf("Child Process\n");
+			if (!strcmp(parsed.command,"cd"))
+				cd();
+			else if (!strcmp(parsed.command,"pwd"))
+				pwd();
+			else if (!strcmp(parsed.command,"echo"))
+				echo();
+			else if (!strcmp(parsed.command,"ls"))
+				ls();
+			else if(!strcmp(parsed.command,"exit"))
+			    exit(0);
+			else
+			{
+				int size = 2 + parsed.flags_index + parsed.arguments_index;
+				char *buf[size];
+				buf[0] = (char *)malloc(1024);
+				strcpy(buf[0], parsed.command);
+				int i, k = 1;
+				for (i=0; i<parsed.flags_index; i++)
+				{
+					buf[k] = (char *)malloc(1024);
+					strcpy(buf[k], "-");
+					strcat(buf[k], parsed.flags[i]);
+					k++;
+				}
+				for (i=0; i<parsed.arguments_index; i++)
+				{
+					if (strcmp(parsed.arguments[i],"&"))
+					{
+						buf[k] = (char *)malloc(1024);
+						strcat(buf[k], parsed.arguments[i]);
+						k++;
+					}
+				}
+				buf[k] = NULL;
+				if (execvp(parsed.command, buf) < 0) {     
+		                printf("*** ERROR: exec failed\n");
+		                exit(1);
+		        }
+		    }
+		}	
+		else
+			printf("fork error\n");	
 }
 
 void free_input(){
@@ -425,14 +480,8 @@ void free_input(){
 	parsed.arguments_index = 0;
 }
 
-void print_command(){
-	printf("command is %s\n", parsed.command);
-	int i,j;
-	for (i=0; i<parsed.flags_index; i++)
-		printf("flag is %s\n", parsed.flags[i]);
-	for (j=0; j<parsed.arguments_index; j++)
-		printf("argument is %s\n", parsed.arguments[j]);
-}
+
+
 int is_bk(){
 	if (parsed.arguments_index==0)
 		return 0;
@@ -449,56 +498,9 @@ void command_loop(){
 		printf("%s", shell_prompt);
 		read_input();
 		parse_input();
-		pid_t pid = fork(), w;
-		if (pid>0)
-		{
-			//if (is_bk())
-/*				continue;
-			else 
-				w = waitpid(pid, 0, 0);
-*/
- 		    if (is_bk())
-				continue;
-			else
-			{
-				int status;
-				while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-     	   			printf("[proc %d exited with code %d]\n",
-               	pid, WEXITSTATUS(status));
-        /* here you can remove the pid from your jobs list */
- 		    	}
-			}
-		}
-		else if (pid==0)
-		{
-			printf("Child Process\n");
-//			printf("asda\n");
-			int size = 1 + parsed.flags_index + parsed.arguments_index;
-			char *buf[size];
-			strcat(buf[0], parsed.command);
-			int i, k = 1;
-			for (i=0; i<parsed.flags_index; i++)
-			{
-				strcat(buf[k], "-");
-				strcat(buf[k], parsed.flags[i]);
-				k++;
-			}
-			for (i=0; i<parsed.arguments_index; i++)
-			{
-				if (strcmp(parsed.arguments[i],"&"))
-				{
-					strcat(buf[k], parsed.arguments[i]);
-					k++;
-				}
-			}
-			buf[k] = NULL;
-			if (execvp(parsed.command, buf) < 0) {     
-	                printf("*** ERROR: exec failed\n");
-	                exit(1);
-	        }
-		}	
-		else
-			printf("fork error\n");	
+		print_command();
+		execute_input();
+		free_input();
 	}
 }
 
