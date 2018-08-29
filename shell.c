@@ -75,7 +75,16 @@ char* itoa(int value, char* buffer, int base)
 }
 
 int is_bk(){
-	if (parsed[current_command].arguments_index==0)
+	 if (input[strlen(input)-1] == '&')
+	{
+		char str[strlen(parsed[current_command].command)-1];
+		strncpy(str, parsed[current_command].command, strlen(parsed[current_command].command)-1);
+		str[strlen(parsed[current_command].command)-1] == '\0';	
+		free(parsed[current_command].command);
+		parsed[current_command].command = str;
+		return 1;
+	}
+	else if (parsed[current_command].arguments_index==0)
 		return 0;
 	else if (!strcmp(parsed[current_command].arguments[parsed[current_command].arguments_index-1], "&"))
 		return 1;
@@ -595,7 +604,7 @@ void parse_input(){
 			continue;
 		}
 
-		if (!is_space(input[i]))
+		if ((!is_space(input[i]))||((is_space(input[i]))&&quote_flag))
 		{
 			if (flag==0)
 				parsed[current_command].command[j++] = input[i];
@@ -626,7 +635,7 @@ void parse_input(){
 				parsed[current_command].arguments[parsed[current_command].arguments_index++] = (char *)malloc(1024);
 				i += 1;
 			}
-			else if (!is_space(input[i+1]))
+			else if ((!is_space(input[i+1]))&&(input[i+1]!=0))
 			{
 				flag = 2;
 				l = 0;
@@ -761,8 +770,12 @@ void command_loop(){
 		current_command = 0;
 		while (current_command < j + 1)
 		{
-			execute_input();
-			free_input();
+			print_command();
+			if (strcmp(parsed[current_command].command, ""))
+			{
+				execute_input();
+				free_input();
+			}
 			current_command += 1;
 		}
 		current_command = 0;
