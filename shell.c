@@ -18,6 +18,9 @@ char shell_home[1024];
 char mon[4];
 char *shell_prompt;
 char *input;
+int main_pid;
+int pid_stack[1024];
+int pid_top;
 typedef struct command_struct
 {
 	char *command;
@@ -27,15 +30,66 @@ typedef struct command_struct
 	int arguments_index;
 } command_struct;
 
-command_struct parsed; 
+int current_command;
+command_struct parsed[1024];
+int commands_index; 
+
+void swap(char *x, char *y) {
+	char t = *x; *x = *y; *y = t;
+}
+
+char* reverse(char *buffer, int i, int j)
+{
+	while (i < j)
+		swap(&buffer[i++], &buffer[j--]);
+
+	return buffer;
+}
+
+char* itoa(int value, char* buffer, int base)
+{
+	if (base < 2 || base > 32)
+		return buffer;
+	int n = abs(value);
+
+	int i = 0;
+	while (n)
+	{
+		int r = n % base;
+
+		if (r >= 10) 
+			buffer[i++] = 65 + (r - 10);
+		else
+			buffer[i++] = 48 + r;
+
+		n = n / base;
+	}
+
+	if (i == 0)
+		buffer[i++] = '0';
+	if (value < 0 && base == 10)
+		buffer[i++] = '-';
+
+	buffer[i] = '\0';
+	return reverse(buffer, 0, i - 1);
+}
+
+int is_bk(){
+	if (parsed[current_command].arguments_index==0)
+		return 0;
+	else if (!strcmp(parsed[current_command].arguments[parsed[current_command].arguments_index-1], "&"))
+		return 1;
+	else
+		return 0;
+}
 
 void print_command(){
-	printf("command is %s\n", parsed.command);
+	printf("command is %s\n", parsed[current_command].command);
 	int i,j;
-	for (i=0; i<parsed.flags_index; i++)
-		printf("flag is %s\n", parsed.flags[i]);
-	for (j=0; j<parsed.arguments_index; j++)
-		printf("argument is %s\n", parsed.arguments[j]);
+	for (i=0; i<parsed[current_command].flags_index; i++)
+		printf("flag is %s\n", parsed[current_command].flags[i]);
+	for (j=0; j<parsed[current_command].arguments_index; j++)
+		printf("argument is %s\n", parsed[current_command].arguments[j]);
 }
 
 int is_small(char c)
@@ -51,6 +105,11 @@ int is_large(char c)
 int is_space(char c)
 {
 	return (c==32);
+}
+
+int is_tab(char c)
+{
+	return (c==9);
 }
 
 int is_hyphen(char c)
@@ -155,7 +214,7 @@ void shell_dir(){
    	else {
        perror("getcwd() error");
    	}
-
+   	//printf("%s\n", shell_pwd);
 }
 
 void prompt(){
@@ -179,21 +238,37 @@ void prompt(){
 }
 
 void cd(){
-	if (parsed.arguments_index>1)
+	if (parsed[current_command].arguments_index>1)
 	{
-		printf("%s: too many arguments\n", parsed.command);
+		printf("%s: too many arguments\n", parsed[current_command].command);
 		return;
 	}
-	if (parsed.arguments_index==0)
+	if (parsed[current_command].arguments_index==0)
 	{
 		int erp = chdir(shell_home);
 		shell_dir();
 		if (!erp)
 			return;
 	}
-	else if (parsed.arguments_index==1)
+	else if (parsed[current_command].arguments_index==1)
 	{
-		int erp = chdir(parsed.arguments[0]);
+		char *path;
+   		path = (char *)malloc(1024);
+		if (!strcmp(parsed[current_command].arguments[0], "~"))
+			strcpy(path, shell_home);
+		else
+		{
+			if (parsed[current_command].arguments[0][0]=='~')
+			{
+				strcpy(path, shell_home);
+    			int i;
+    			for (i=1; i<strlen(parsed[current_command].arguments[0]); i++)
+    				path[strlen(path)] = parsed[current_command].arguments[0][i];	
+			}
+			else
+				strcpy(path, parsed[current_command].arguments[0]);
+		}
+		int erp = chdir(path);
 		shell_dir();
 		if (!erp)
 			return;
@@ -213,10 +288,10 @@ void pwd(){
 
 void echo(){
 	int i;
-	for (i=0; i<parsed.arguments_index-1; i++)
-		printf("%s ", parsed.arguments[i]);
-	if (parsed.arguments_index>0)
-		printf("%s\n", parsed.arguments[parsed.arguments_index-1]);
+	for (i=0; i<parsed[current_command].arguments_index-1; i++)
+		printf("%s ", parsed[current_command].arguments[i]);
+	if (parsed[current_command].arguments_index>0)
+		printf("%s\n", parsed[current_command].arguments[parsed[current_command].arguments_index-1]);
 	else
 		printf("\n");
 }
@@ -264,7 +339,6 @@ void full_ls_file(char* file, int a, int max){
 }
 
 void full_ls(char* path, int a){
-	printf("Hurray\n");
 	DIR * curdir1 = opendir(path);
     struct dirent *curfile;
     struct dirent *curfile1;
@@ -287,54 +361,83 @@ void full_ls(char* path, int a){
 }
 
 void ls(){
-	printf("Hurray ls\n");
-	print_command();
     struct stat curstat;
     int l = 0;
     int a = 0;
     int i;
-    for (i=0; i<parsed.flags_index; i++)
+    for (i=0; i<parsed[current_command].flags_index; i++)
     {
-    	if (!strcmp(parsed.flags[i], "l"))
+    	if (!strcmp(parsed[current_command].flags[i], "l"))
     		l = 1;
-    	else if (!strcmp(parsed.flags[i], "a"))
+    	else if (!strcmp(parsed[current_command].flags[i], "a"))
     		a = 1;
-    	else if (!strcmp(parsed.flags[i], "al"))
+    	else if (!strcmp(parsed[current_command].flags[i], "al"))
     	{
     		a = 1;
     		l = 1;
     	}
-    	else if (!strcmp(parsed.flags[i], "la"))
+    	else if (!strcmp(parsed[current_command].flags[i], "la"))
     	{
     		a = 1;
     		l = 1;
     	}
     }
 
-    if (parsed.arguments_index==0)
+    if (parsed[current_command].arguments_index==0)
+    {
+    	char cur[1024];
+		if (getcwd(cur, sizeof(cur)) == NULL) 		
+       		perror("getcwd() error");
+
+    	if (l==1)
+    		full_ls(cur, a);
+    	else
+        	regular_ls(cur, a);
+    }
+    else if (!strcmp(parsed[current_command].arguments[0], "~"))
     {
     	if (l==1)
     		full_ls(shell_home, a);
     	else
         	regular_ls(shell_home, a);
     }
-
     else
     {
     	int i = 0;
-    	for (i=0; i<parsed.arguments_index; i++)
+    	for (i=0; i<parsed[current_command].arguments_index; i++)
     	{
+
+	
     		char *path;
     		path = (char *)malloc(1024);
-    		strcat(path, parsed.arguments[i]);	
-    		
+    		char cur[1024];
+			if (getcwd(cur, sizeof(cur)) == NULL) 		
+       			perror("getcwd() error");
+	
+			if (!strcmp(parsed[current_command].arguments[i], "~"))
+				strcpy(path, shell_home);
+			else
+			{
+				if (parsed[current_command].arguments[i][0]=='~')
+				{
+					strcpy(path, shell_home);
+	    			int j;
+	    			for (j=1; j<strlen(parsed[current_command].arguments[i]); j++)
+	    				path[strlen(path)] = parsed[current_command].arguments[i][j];	
+				}
+				else
+				{
+					strcpy(path, cur);
+					strcpy(path, parsed[current_command].arguments[i]);
+				}	
+			}
     		struct stat path_stat;
 			stat(path, &path_stat);
 			if (S_ISDIR(path_stat.st_mode))                   //if ls is run on directory
 			{
 				if (isNOTDIR(path))
 					continue;
-				printf("%s:\n", parsed.arguments[i]);
+				printf("%s:\n", parsed[current_command].arguments[i]);
 				if (l==1)
     				full_ls(path, a);
     			else
@@ -342,11 +445,11 @@ void ls(){
 			}
 			else
     		{
-    			if (isFile(parsed.arguments[i]))
+    			if (isFile(path))
     				if (l==1)
-    					full_ls_file(parsed.arguments[i], a, 5);
+    					full_ls_file(path, a, 5);
     				else
-    					printf("%s\n", parsed.arguments[i]);          //if ls is run on file
+    					printf("%s\n", path);          //if ls is run on file
 				else
 					printf("No such file or directory exists\n"); 
 			}
@@ -354,6 +457,108 @@ void ls(){
     }
 }
 
+char *state;
+int vm_result;
+void proc_info(){ 
+	char *filelink;
+	filelink = (char *)malloc(1024);
+	strcat(filelink, "/proc/");
+	char pid_string[1024];
+	//printf("%s\n", parsed[current_command].arguments[0]);
+	if (parsed[current_command].arguments_index!=0)
+		strcat(filelink, parsed[current_command].arguments[0]);
+	else
+	{
+		char pid_string[1024];
+		itoa(main_pid, pid_string, 10);
+		strcat(filelink, pid_string);
+	}
+
+	strcat(filelink, "/status");
+    FILE* file = fopen(filelink, "r");
+    state = (char *)malloc(20);
+    state[0] = '\0';
+    vm_result = 0;
+    char line[1024];
+    while (fgets(line, 1024, file) != NULL){
+        if (strncmp(line, "VmSize:", 7) == 0){
+            int i = strlen(line);
+		    char* p = line;
+		    while (*p <'0' || *p > '9') p++;
+		    line[i-3] = '\0';
+		    i = atoi(p);
+            vm_result = i;
+        }
+        else if (strncmp(line, "State:", 6) == 0){
+        	char* q = line;
+        	q = q + 6;
+        	int g = 0;
+        	while (!is_large(*q)) 
+        		q++;
+        	while (*q != '\n')
+        	{	
+        		state[g++] = *q;
+        		q++;
+        	}
+        	state[g] = '\0';
+        }
+        
+    }
+    fclose(file);
+    return;
+}
+
+void pinfo(){
+	if (parsed[current_command].arguments_index==0)
+		printf("pid -- %d\n", main_pid);
+	else
+	{
+		if (parsed[current_command].arguments_index>1)
+		{
+			printf("too many arguments\n");
+			return;
+		}
+		char *filelink;
+		filelink = (char *)malloc(1024);
+		strcat(filelink, "/proc/");
+		strcat(filelink, parsed[current_command].arguments[0]);
+		struct stat sts;
+		if (stat(filelink, &sts) == -1 && errno == ENOENT) {
+			printf("There's no process with given pid\n");
+			return;
+		}
+		printf("pid -- %s\n", parsed[current_command].arguments[0]);
+	}
+	proc_info();
+	printf("Process Status -- %s memory\n", state);
+	printf("- %d{Virtual Memory}\n", vm_result);
+	printf("Executable Path --");
+	char *link;
+	link = (char *)malloc(1024);
+	//link[0] = '\0';
+	strcpy(link, "/proc/");
+	//printf("%s\n", parsed[current_command].arguments[0]);
+	if (parsed[current_command].arguments_index!=0)
+	{
+		strcat(link, parsed[current_command].arguments[0]);
+	}
+	else
+	{
+		char pid_string[1024];
+		itoa(main_pid, pid_string, 10);
+		strcat(link, pid_string);
+	}
+	strcat(link, "/exe");
+	int i;
+	char *buf;
+	buf = (char *)malloc(1024);
+	int bufsize = 1024;
+	for (i=0; i<bufsize; i++) buf[i] = '\0';
+	readlink(link, buf, bufsize);
+	printf("%s", buf);
+	//printf("%s\n", buf);
+    printf("\n");
+}
 
 void read_input(){
 	input = (char *)malloc(1024);
@@ -368,33 +573,49 @@ void read_input(){
 }
 
 void parse_input(){
-	parsed.command = (char *)malloc(1024);
+	parsed[current_command].command = (char *)malloc(1024);
 	int flag = 0;    //flag 0  means command, flag 1 means flags, flag 2 means argument
 	int quote_flag = 0;
 	int j = 0, k = 0, l = 0, i=0;
 	while (i<strlen(input))
 	{
-		if ((is_small(input[i])||is_large(input[i])||quote_flag)||(input[i]==46)||(input[i]==38))
+		if (input[i]==';')
+		{
+		//	printf("Detected!!\n");
+			flag = 0;
+			j = 0, k = 0, l = 0, i++;
+			quote_flag = 0;
+			current_command++;
+			parsed[current_command].command = (char *)malloc(1024);
+			continue;
+		}
+		if (((is_space(input[i]))||(is_tab(input[i])))&&(j==0))
+		{
+			i += 1;
+			continue;
+		}
+
+		if (!is_space(input[i]))
 		{
 			if (flag==0)
-				parsed.command[j++] = input[i];
+				parsed[current_command].command[j++] = input[i];
 			else if (flag==1)
-				parsed.flags[parsed.flags_index-1][k++] = input[i];
+				parsed[current_command].flags[parsed[current_command].flags_index-1][k++] = input[i];
 			else if (flag==2)
-				{
-					if (is_quotation(input[i]))
-						quote_flag = 0; 
-					else
-						parsed.arguments[parsed.arguments_index-1][l++] = input[i];
-				}
+			{
+				if (is_quotation(input[i]))
+					quote_flag = 0; 
+				else
+					parsed[current_command].arguments[parsed[current_command].arguments_index-1][l++] = input[i];
+			}
 		}		
-		else if ((is_space(input[i]))&&(j!=0))
+		else 
 		{
 			if (is_hyphen(input[i+1]))
 			{
 				flag = 1;
 				k = 0;
-				parsed.flags[parsed.flags_index++] = (char *)malloc(1024);
+				parsed[current_command].flags[parsed[current_command].flags_index++] = (char *)malloc(1024);
 				i += 1;
 			}
 			else if (is_quotation(input[i+1]))
@@ -402,105 +623,149 @@ void parse_input(){
 				quote_flag = 1;
 				flag = 2;
 				l = 0;
-				parsed.arguments[parsed.arguments_index++] = (char *)malloc(1024);
+				parsed[current_command].arguments[parsed[current_command].arguments_index++] = (char *)malloc(1024);
 				i += 1;
 			}
 			else if (!is_space(input[i+1]))
 			{
 				flag = 2;
 				l = 0;
-				parsed.arguments[parsed.arguments_index++] = (char *)malloc(1024);
+				parsed[current_command].arguments[parsed[current_command].arguments_index++] = (char *)malloc(1024);
 			}			
 		}
 		i += 1;
 	}
 }
 
-void execute_input(){
+int count = 1;
+char proc_stack[1024][1024];
+int execute_input(){
+			
+		if (!strcmp(parsed[current_command].command,"pwd"))
+		{
+			pwd();
+			return 1;
+		}
+		else if (!strcmp(parsed[current_command].command,"echo"))
+		{
+			echo();
+			return 1;
+		}
+		else if (!strcmp(parsed[current_command].command,"ls"))
+		{
+			ls();
+			return 1;
+		}
+		else if(!strcmp(parsed[current_command].command,"exit"))
+		{
+			kill(getpid(), 9);
+			return 1;
+		}
+		else if (!strcmp(parsed[current_command].command,"pinfo"))
+		{
+			pinfo();
+			return 1;
+		}
+		else if (!strcmp(parsed[current_command].command, "cd"))
+		{
+			cd();
+			return 1;
+		}
+
 		int status;
 		pid_t pid = fork(), w;
 
 		if (pid>0)
 		{
 //			printf("Parent Process\n");
-			if (waitpid (pid, &status, 0) != pid)
+			pid_stack[pid_top] = pid;
+		   	strcpy(proc_stack[pid_top],parsed[current_command].command);
+		   	pid_top++;
+			if (is_bk())
+				printf("[%d] %d\n", count++, pid);
+			else
+			{
+				if (waitpid (pid, &status, 0) != pid)
       			status = -1;
+      		}
 		}
 		else if (pid==0)
 		{
-//			printf("Child Process\n");
-			if (!strcmp(parsed.command,"cd"))
-				cd();
-			else if (!strcmp(parsed.command,"pwd"))
-				pwd();
-			else if (!strcmp(parsed.command,"echo"))
-				echo();
-			else if (!strcmp(parsed.command,"ls"))
-				ls();
-			else if(!strcmp(parsed.command,"exit"))
-			    exit(0);
-			else
+			if (is_bk())
 			{
-				int size = 2 + parsed.flags_index + parsed.arguments_index;
-				char *buf[size];
-				buf[0] = (char *)malloc(1024);
-				strcpy(buf[0], parsed.command);
-				int i, k = 1;
-				for (i=0; i<parsed.flags_index; i++)
+				parsed[current_command].arguments[parsed[current_command].arguments_index-1] = NULL;
+				parsed[current_command].arguments_index -= 1;
+			}
+//			printf("Child Process\n");
+			int size = 2 + parsed[current_command].flags_index + parsed[current_command].arguments_index;
+			char *buf[size];
+			buf[0] = (char *)malloc(1024);
+			strcpy(buf[0], parsed[current_command].command);
+			int i, k = 1;
+			for (i=0; i<parsed[current_command].flags_index; i++)
+			{
+				buf[k] = (char *)malloc(1024);
+				strcpy(buf[k], "-");
+				strcat(buf[k], parsed[current_command].flags[i]);
+				k++;
+			}
+			for (i=0; i<parsed[current_command].arguments_index; i++)
+			{
+				if (strcmp(parsed[current_command].arguments[i],"&"))
 				{
 					buf[k] = (char *)malloc(1024);
-					strcpy(buf[k], "-");
-					strcat(buf[k], parsed.flags[i]);
+					strcat(buf[k], parsed[current_command].arguments[i]);
 					k++;
 				}
-				for (i=0; i<parsed.arguments_index; i++)
-				{
-					if (strcmp(parsed.arguments[i],"&"))
-					{
-						buf[k] = (char *)malloc(1024);
-						strcat(buf[k], parsed.arguments[i]);
-						k++;
-					}
-				}
-				buf[k] = NULL;
-				if (execvp(parsed.command, buf) < 0) {     
-		                printf("*** ERROR: exec failed\n");
-		                exit(1);
-		        }
-		    }
+			}
+			buf[k] = NULL;
+				if (execvp(parsed[current_command].command, buf) < 0) {     
+	                printf("*** ERROR: exec failed\n");
+	                exit(1);
+	        }
+		    
+		    status = 1;
+		    //bk_end();
+		    exit(0);
 		}	
 		else
+		{
+			status = -2;
 			printf("fork error\n");	
+		}
+		return status;
 }
 
 void free_input(){
-	free(parsed.command);
-	int i,j;
-	parsed.flags_index = 0;
-	parsed.arguments_index = 0;
-}
-
-
-
-int is_bk(){
-	if (parsed.arguments_index==0)
-		return 0;
-	else if (!strcmp(parsed.arguments[parsed.arguments_index-1], "&"))
-		return 1;
-	else
-		return 0;
+	parsed[current_command].flags_index = 0;
+	parsed[current_command].arguments_index = 0;
 }
 
 void command_loop(){
 	while(1)
 	{
 		prompt();
+		int i;
+		for (i=1; i<pid_top; i++)
+		{
+			int status;
+			if (waitpid(pid_stack[i], &status, WNOHANG) > 0) 
+			{
+				printf("%s with pid %d exited normally\n", proc_stack[i], pid_stack[i]);
+			}
+		}
 		printf("%s", shell_prompt);
 		read_input();
 		parse_input();
-		print_command();
-		execute_input();
-		free_input();
+		int j = current_command;
+		current_command = 0;
+		while (current_command < j + 1)
+		{
+			execute_input();
+			free_input();
+			current_command += 1;
+		}
+		current_command = 0;
 	}
 }
 
@@ -513,7 +778,10 @@ int main(){
        perror("getcwd() error");
        return 1;
    	}
-
+   	main_pid = (int)getpid();
+   	pid_stack[pid_top] = main_pid;
+   	strcpy(proc_stack[pid_top],"shell");
+   	pid_top++;
 //Running Loop which checks for command entered   	
    	command_loop();
 	return 0;
