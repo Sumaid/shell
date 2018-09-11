@@ -17,6 +17,8 @@
 #include "pwd.h"
 #include "echo.h"
 #include "ls.h"
+#include "remindme.h"
+#include "clock.h"
 #include "globals.h"
 
 char *state;
@@ -67,6 +69,7 @@ void read_input(){
     	strcat(input, &temp);
 	}
 }
+
 
 void parse_input(){
 	parsed[current_command].command = (char *)malloc(1024);
@@ -145,11 +148,6 @@ int execute_input(){
 			echo();
 			return 1;
 		}
-		else if (!strcmp(parsed[current_command].command,"ls"))
-		{
-			ls();
-			return 1;
-		}
 		else if(!strcmp(parsed[current_command].command,"exit"))
 		{
 			kill(getpid(), 9);
@@ -165,6 +163,11 @@ int execute_input(){
 			cd();
 			return 1;
 		}
+		else if (!strcmp(parsed[current_command].command, "clock"))
+		{
+			self_clock();
+			return 1;
+		}
 
 		int status;
 		pid_t pid = fork(), w;
@@ -172,12 +175,15 @@ int execute_input(){
 		if (pid>0)
 		{
 //			printf("Parent Process\n");
-			pid_stack[pid_top] = pid;
-		   	strcpy(proc_stack[pid_top],parsed[current_command].command);
-		   	pid_top++;
+			if (strcmp(parsed[current_command].command, "remindme"))
+			{	
+				pid_stack[pid_top] = pid;
+		   		strcpy(proc_stack[pid_top],parsed[current_command].command);
+		   		pid_top++;
+		   	}
 			if (is_bk())
 				printf("[%d] %d\n", count++, pid);
-			else
+			else if (strcmp(parsed[current_command].command, "remindme"))
 			{
 				if (waitpid (pid, &status, 0) != pid)
       			status = -1;
@@ -212,12 +218,27 @@ int execute_input(){
 					k++;
 				}
 			}
-			buf[k] = NULL;
-				if (execvp(parsed[current_command].command, buf) < 0) {     
-	                printf("*** ERROR: exec failed\n");
-	                exit(1);
-	        }
-		    
+		
+			if (!strcmp(parsed[current_command].command,"remindme"))
+			{
+				remindme();
+				return 1;
+			}
+			else if (!strcmp(parsed[current_command].command,"ls"))
+			{
+				//printf("asdasd\n");
+				ls();
+				//if (!is_bk())
+				//	return 1;
+			}
+			else
+			{
+				buf[k] = NULL;
+					if (execvp(parsed[current_command].command, buf) < 0) {     
+		                printf("*** ERROR: exec failed\n");
+		                exit(1);
+		        }
+		    }
 		    status = 1;
 		    //bk_end();
 		    exit(0);
@@ -228,6 +249,11 @@ int execute_input(){
 			printf("fork error\n");	
 		}
 		return status;
+}
+
+void free_input(){
+	parsed[current_command].flags_index = 0;
+	parsed[current_command].arguments_index = 0;
 }
 
 void command_loop(){
@@ -250,16 +276,16 @@ void command_loop(){
 		current_command = 0;
 		while (current_command < j + 1)
 		{
-			print_command();
+			//print_command();
 			if (strcmp(parsed[current_command].command, ""))
 			{
 				execute_input();
-				parsed[current_command].flags_index = 0;
-				parsed[current_command].arguments_index = 0;
+				free_input();
 			}
 			current_command += 1;
 		}
 		current_command = 0;
+		free(shell_prompt);
 	}
 }
 

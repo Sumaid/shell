@@ -68,7 +68,7 @@ eg.
 8)Semi colon seperated commands work
 
 9)BONUS Remindme:
-  remindme time "message"
+  remindme [time] "[message]"
 
 10)BONUS clock:
   clock -t [gap] -n [duration]

@@ -55,16 +55,7 @@ char* itoa(int value, char* buffer, int base)
 }
 
 int is_bk(){
-	 if (input[strlen(input)-1] == '&')
-	{
-		char str[strlen(parsed[current_command].command)-1];
-		strncpy(str, parsed[current_command].command, strlen(parsed[current_command].command)-1);
-		str[strlen(parsed[current_command].command)-1] == '\0';	
-		free(parsed[current_command].command);
-		parsed[current_command].command = str;
-		return 1;
-	}
-	else if (parsed[current_command].arguments_index==0)
+	if (parsed[current_command].arguments_index==0)
 		return 0;
 	else if (!strcmp(parsed[current_command].arguments[parsed[current_command].arguments_index-1], "&"))
 		return 1;

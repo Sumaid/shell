@@ -1,2 +1,2 @@
 all:
-	gcc shell.c -o shell
+	gcc *.c -o shell

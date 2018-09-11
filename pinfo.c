@@ -17,7 +17,6 @@
 
 char *state;
 int vm_result;
-
 void proc_info(){ 
 	char *filelink;
 	filelink = (char *)malloc(1024);

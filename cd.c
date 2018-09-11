@@ -17,7 +17,12 @@
 void shell_dir(){
 	char temp[1024];
 	if (getcwd(temp, sizeof(temp)) != NULL) {
-		if (!strcmp(temp,shell_home))
+		if (strlen(temp)<strlen(shell_home))
+		{
+   			shell_pwd = malloc(strlen(temp) + 1 + 1 );
+   			strcpy(shell_pwd, temp);
+   		}
+		else if (!strcmp(temp,shell_home))
    		{
    			shell_pwd = malloc(3);
    			strcpy(shell_pwd, "~");
