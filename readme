@@ -81,3 +81,4 @@ Redirection:
 2) >> is for redirecting output to a file(appending)
 3) file name within double quotes is accepted
 4) ls > "file  name" or ls>"file name" or ls      >"adsads" all cases work
+5) wc -l < filename > outputfile or wc -l > outputfile < filename (for input + output redirection)

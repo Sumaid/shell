@@ -118,6 +118,8 @@ int execute_input(){
 					if (execvp(parsed[current_command].command, buf) < 0) {     
 		                printf("*** ERROR: exec failed\n");
 		                exit(1);
+				close(parsed[current_command].i_fd);
+				close(parsed[current_command].o_fd);
 			}
 
 		    }
