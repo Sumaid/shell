@@ -35,7 +35,7 @@ void self_clock(){
 		struct tm tm = *localtime(t);
 		Mon(1+tm.tm_mon);
 		if (d_gap==0)
-			printf("%d %s %d, %02d:%02d:%02d\n", tm.tm_mday, mon, 1900+tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec);	
+			dprintf(parsed[current_command].o_fd, "%d %s %d, %02d:%02d:%02d\n", tm.tm_mday, mon, 1900+tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec);	
 		d_gap = (d_gap + 1)%gap;
 		time_duration++;
 		sleep(1);

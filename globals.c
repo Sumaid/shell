@@ -64,12 +64,15 @@ int is_bk(){
 }
 
 void print_command(){
-	printf("command is %s\n", parsed[current_command].command);
+	printf("--- command is %s ---\n", parsed[current_command].command);
+	printf("--- output fd is %d --- \n", parsed[current_command].o_fd);
+	printf("--- input fd is %d --- \n", parsed[current_command].i_fd);
+
 	int i,j;
 	for (i=0; i<parsed[current_command].flags_index; i++)
-		printf("flag is %s\n", parsed[current_command].flags[i]);
+		printf("--- flag is %s --- \n", parsed[current_command].flags[i]);
 	for (j=0; j<parsed[current_command].arguments_index; j++)
-		printf("argument is %s\n", parsed[current_command].arguments[j]);
+		printf("--- argument is %s --- \n", parsed[current_command].arguments[j]);
 }
 
 int is_small(char c)

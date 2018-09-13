@@ -30,7 +30,7 @@ void remindme(){
     	double time_passed = ((double)t1)/CLOCKS_PER_SEC;
     	if (time_passed>time_expected)
     	{
-	    	printf("\nReminder: %s\n", parsed[current_command].arguments[1]);
+	    	dprintf(parsed[current_command].o_fd, "\nReminder: %s\n", parsed[current_command].arguments[1]);
     		exit(0);
     	}
     }

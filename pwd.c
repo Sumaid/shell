@@ -18,7 +18,9 @@
 void pwd(){
 	char cur[1024];
 	if (getcwd(cur, sizeof(cur)) != NULL) 		
-	   printf("%s\n", cur);
+	{
+	    dprintf(parsed[current_command].o_fd, "%s\n", cur);
+   	}
    	else 
        perror("getcwd() error");
 }

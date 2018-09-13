@@ -23,9 +23,9 @@ void regular_ls(char* path, int a){
 //      if (((!strcmp(curfile->d_name, "."))||(!strcmp(curfile->d_name, "..")))&&(!a))
         if ((isHiddenFile(curfile->d_name))&&(!a))
             continue;
-        printf("%s   ", curfile->d_name);
+        dprintf(parsed[current_command].o_fd, "%s   ", curfile->d_name);
     }
-    printf("\n");
+    dprintf(parsed[current_command].o_fd, "\n");
 }
 
 
@@ -54,7 +54,7 @@ void full_ls_file(char* file, int a, int max){
     *t = fileStat.st_mtime;
     struct tm tm = *localtime(t);
     Mon(tm.tm_mon+1);
-    printf("%s %2ld %s %s %*ld %s %d %d:%02d %s\n", permissions, fileStat.st_nlink, pwd->pw_name, grp->gr_name, max, fileStat.st_size, mon, tm.tm_mday, tm.tm_hour, tm.tm_min, file);
+    dprintf(parsed[current_command].o_fd, "%s %2ld %s %s %*ld %s %d %d:%02d %s\n", permissions, fileStat.st_nlink, pwd->pw_name, grp->gr_name, max, fileStat.st_size, mon, tm.tm_mday, tm.tm_hour, tm.tm_min, file);
 }
 
 void full_ls(char* path, int a){
@@ -125,8 +125,6 @@ void ls(){
         int i = 0;
         for (i=0; i<parsed[current_command].arguments_index; i++)
         {
-
-    
             char *path;
             path = (char *)malloc(1024);
             char cur[1024];
@@ -156,7 +154,7 @@ void ls(){
             {
                 if (isNOTDIR(path))
                     continue;
-                printf("%s:\n", parsed[current_command].arguments[i]);
+                dprintf(parsed[current_command].o_fd, "%s:\n", parsed[current_command].arguments[i]);
                 if (l==1)
                     full_ls(path, a);
                 else
@@ -166,11 +164,18 @@ void ls(){
             {
                 if (isFile(path))
                     if (l==1)
+                    {
                         full_ls_file(path, a, 5);
+                    }
                     else
-                        printf("%s\n", path);          //if ls is run on file
+                    {
+                        dprintf(parsed[current_command].o_fd, "%s\n", path);          //if ls is run on file
+                    }
                 else
-                    printf("No such file or directory exists\n"); 
+                {
+                    perror("");
+                    continue;
+                }    
             }
         }   
     }

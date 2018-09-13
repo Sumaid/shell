@@ -18,9 +18,9 @@
 void echo(){
 	int i;
 	for (i=0; i<parsed[current_command].arguments_index-1; i++)
-		printf("%s ", parsed[current_command].arguments[i]);
+		dprintf(parsed[current_command].o_fd, "%s ", parsed[current_command].arguments[i]);
 	if (parsed[current_command].arguments_index>0)
-		printf("%s\n", parsed[current_command].arguments[parsed[current_command].arguments_index-1]);
+		dprintf(parsed[current_command].o_fd, "%s\n", parsed[current_command].arguments[parsed[current_command].arguments_index-1]);
 	else
-		printf("\n");
+		dprintf(parsed[current_command].o_fd, "\n");
 }

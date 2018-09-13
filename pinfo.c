@@ -68,7 +68,7 @@ void proc_info(){
 
 void pinfo(){
 	if (parsed[current_command].arguments_index==0)
-		printf("pid -- %d\n", main_pid);
+		dprintf(parsed[current_command].o_fd, "pid -- %d\n", main_pid);
 	else
 	{
 		if (parsed[current_command].arguments_index>1)
@@ -85,12 +85,12 @@ void pinfo(){
 			printf("There's no process with given pid\n");
 			return;
 		}
-		printf("pid -- %s\n", parsed[current_command].arguments[0]);
+		dprintf(parsed[current_command].o_fd, "pid -- %s\n", parsed[current_command].arguments[0]);
 	}
 	proc_info();
-	printf("Process Status -- %s memory\n", state);
-	printf("- %d{Virtual Memory}\n", vm_result);
-	printf("Executable Path --");
+	dprintf(parsed[current_command].o_fd, "Process Status -- %s memory\n", state);
+	dprintf(parsed[current_command].o_fd, "- %d{Virtual Memory}\n", vm_result);
+	dprintf(parsed[current_command].o_fd, "Executable Path --");
 	char *link;
 	link = (char *)malloc(1024);
 	//link[0] = '\0';
@@ -113,7 +113,7 @@ void pinfo(){
 	int bufsize = 1024;
 	for (i=0; i<bufsize; i++) buf[i] = '\0';
 	readlink(link, buf, bufsize);
-	printf("%s", buf);
+	dprintf(parsed[current_command].o_fd, "%s", buf);
 	//printf("%s\n", buf);
-    printf("\n");
+    dprintf(parsed[current_command].o_fd, "\n");
 }
