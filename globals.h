@@ -16,11 +16,19 @@ typedef struct command_struct
 		char *arguments[1024];
 		int flags_index;
 		int arguments_index;
+		char *outputfile;
+		char *inputfile;
+		int o_fd;
+		int i_fd;	
 	} command_struct;
 
 extern	int current_command;
 extern	command_struct parsed[1024];
 extern	int commands_index; 
+extern int redirect_flag;
+extern int count;
+extern char proc_stack[1024][1024];
+
 
 void swap(char *x, char *y);
 char* reverse(char *buffer, int i, int j);

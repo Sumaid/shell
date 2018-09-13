@@ -72,3 +72,12 @@ eg.
 
 10)BONUS clock:
   clock -t [gap] -n [duration]
+
+
+ASSIGNMENT 3:
+
+Redirection:
+1) > is for redirecting output to a file(replacing)
+2) >> is for redirecting output to a file(appending)
+3) file name within double quotes is accepted
+4) ls > "file  name" or ls>"file name" or ls      >"adsads" all cases work
