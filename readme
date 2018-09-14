@@ -74,8 +74,6 @@ eg.
   clock -t [gap] -n [duration]
 
 
-ASSIGNMENT 3:
-
 Redirection:
 1) > is for redirecting output to a file(replacing)
 2) >> is for redirecting output to a file(appending)
