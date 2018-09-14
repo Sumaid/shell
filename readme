@@ -1,10 +1,17 @@
 												Interactive User Defined Shell
 
+Instructions:
+  1)run make all and then ./shell
+  2)"exit" to terminate shell program
+
+
 1)Shell Prompt with username and Operating system name appears.Current directory also appears.
   First time when shell is invoked,that directory is considered root or "~",and hence any inner directories follow pattern from here.
 
+
 2)pwd
   - Shows currect working directory with respect to root directory of system(not shell)
+
 
 3)echo 
   INPUT                                                                 OUTPUT 
@@ -13,11 +20,65 @@
   echo "arg1          arg2"                            ->               arg1          arg2
   echo 'arg1          arg2'                            ->               arg1          arg2
 
+
 4)ls
   INPUT                                                                 OUTPUT 
   ls                                                   ->               (Regular ls output)
   ls file1 file2 file3....                             ->               (ls output on each file-any number of arguments)
   ls dir file file2                                    ->               (ls output within dir and on each file)
   ls -[al]                                             ->               (Works on individual file also)
-  																		(Hidden files appear only with -a flag)
-  																		(Output looks exactly like original shell)
+  																		                                  (Hidden files appear only with -a flag)
+  																		                                  (Output looks exactly like original shell, with symmetry in file sizes also)
+  ls ~
+  ls ~/path...
+
+
+ 5)
+  cd directory name
+  cd ./../~ 
+  cd ~/path...
+  (works beyond ~ directory also)
+
+6)pinfo command (user defined)
+pinfo : prints the process related info of your shell program.
+Ex: <Name@UBUNTU:~> pinfo
+pid -- 231
+Process Status -- {R/S/S+/Z} memory
+- 67854 {Virtual Memory}
+- Executable Path -- ~/a.out
+-pinfo <pid> : prints the process info about given pid.
+Ex: <Name@UBUNTU:~>pinfo 7777
+pid -- 7777
+Process Status -- {R/S/S+/Z} memory
+- 123123 {Virtual Memory}
+- Executable Path — /usr/bin/gcc
+
+
+7)Background processes: Any command invoked with "&" is treated as background
+command. This implies that this shell will spawn that process and doesn't wait for
+the process to exit. It will keep taking user commands
+  If the background process exits then the shell displays the appropriate
+message to the user.
+eg.
+  emacs with pid 456 exited normally
+  To run a command in background:
+  
+  command & 
+
+8)Semi colon seperated commands work
+
+9)BONUS Remindme:
+  remindme [time] "[message]"
+
+10)BONUS clock:
+  clock -t [gap] -n [duration]
+
+
+ASSIGNMENT 3:
+
+Redirection:
+1) > is for redirecting output to a file(replacing)
+2) >> is for redirecting output to a file(appending)
+3) file name within double quotes is accepted
+4) ls > "file  name" or ls>"file name" or ls      >"adsads" all cases work
+5) wc -l < filename > outputfile or wc -l > outputfile < filename (for input + output redirection)
