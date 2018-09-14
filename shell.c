@@ -45,13 +45,9 @@ int redirect_flag;
 void free_command(){
 	parsed[current_command].flags_index = 0;
 	parsed[current_command].arguments_index = 0;
-	parsed[current_command].o_fd  = 1;
-	parsed[current_command].i_fd  = 0;
 }
 
 int io_decider(){
-	parsed[current_command].o_fd  = 1;	
-	parsed[current_command].i_fd  = 0;
     if (parsed[current_command].outputfile!=NULL)
     {
     	printf("--- output file is %s ---\n", parsed[current_command].outputfile);
@@ -130,15 +126,20 @@ void command_loop(){
 		parse_input();		
 		if (io_decider()<0)
 			continue;
-		print_command();
+		//print_command();
 		int j = current_command;
 		current_command = 0;
 		while (current_command < j + 1)
 		{
-			//print_command();
+			print_command();
 			//printf("current_command is %d\n", current_command);
 			if (strcmp(parsed[current_command].command, ""))
+			{
 				execute_input();
+				//char *cuf;
+				//read(parsed[current_command].o_fd, cuf, 100);
+				//printf("wrote %s to %d\n", cuf, parsed[current_command].o_fd);
+			}
 			free_command();
 			current_command += 1;
 		}

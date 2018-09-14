@@ -58,7 +58,6 @@ int execute_input(){
 		}
 		int status;
 		pid_t pid = fork(), w;
-
 		if (pid>0)
 		{
 			if (strcmp(parsed[current_command].command, "remindme"))
@@ -72,7 +71,7 @@ int execute_input(){
 			else if (strcmp(parsed[current_command].command, "remindme"))
 			{
 				if (waitpid (pid, &status, 0) != pid)
-      			status = -1;
+      				status = -1;	
       		}
 		}
 		else if (pid==0)
@@ -112,16 +111,18 @@ int execute_input(){
 				ls();
 			else
 			{
+				printf("at least here\n");
+				printf("buf[0] is %s\n", buf[0]);
+				printf("parsed[current_command].i_fd %d\n", parsed[current_command].i_fd);
+				printf("parsed[current_command].o_fd %d\n", parsed[current_command].o_fd);
+
 				dup2(parsed[current_command].i_fd, 0);
 				dup2(parsed[current_command].o_fd, 1);
 				buf[k] = NULL;
 					if (execvp(parsed[current_command].command, buf) < 0) {     
 		                printf("*** ERROR: exec failed\n");
-		                exit(1);
-				close(parsed[current_command].i_fd);
-				close(parsed[current_command].o_fd);
-			}
-
+		                exit(1);				
+				}
 		    }
 		    status = 1;
 		    exit(0);

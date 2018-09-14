@@ -28,7 +28,8 @@ extern	int commands_index;
 extern int redirect_flag;
 extern int count;
 extern char proc_stack[1024][1024];
-
+extern int pipes[1024];
+extern int pipe_number;
 
 void swap(char *x, char *y);
 char* reverse(char *buffer, int i, int j);

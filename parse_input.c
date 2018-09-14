@@ -14,7 +14,8 @@
 #include <time.h>
 #include "globals.h"
 
-
+int pipe_number = 0;
+int pipes[1024];
 void parse_input(){
 	current_command = 0;
 	parsed[current_command].command = (char *)malloc(1024);
@@ -28,8 +29,42 @@ void parse_input(){
 	int j = 0, k = 0, l = 0, i=0;
 	while (i<strlen(input))
 	{
+		if (i==0)
+      	{
+      		parsed[current_command].i_fd = 0;
+      		parsed[current_command].o_fd = 1;
+      	}	
+
+		if (i==strlen(input)-1)
+      	{
+      		//parsed[current_command].i_fd = 0;
+      		parsed[current_command].o_fd = 1;
+      	}
+
+		if (input[i]=='|')
+		{
+			flag = 0;
+			j = 0, k = 0, l = 0, i++;
+			quote_flag = 0;
+			output_file_index = 0;
+			input_file_index = 0;
+			output_redirect_flag = 0;
+			int fildes[2];
+			if(pipe(fildes) != 0)
+      			perror("pipe failed");
+      		pipes[pipe_number*2] = fildes[0];
+      		pipes[pipe_number*2+1] = fildes[1];
+      		pipe_number++;			
+      		parsed[current_command].o_fd = fildes[1];
+			current_command++;
+      		parsed[current_command].i_fd = fildes[0];
+			parsed[current_command].command = (char *)malloc(1024);
+			parsed[current_command].outputfile = (char *)malloc(1024);
+			parsed[current_command].inputfile = (char *)malloc(1024);
+		}
 		if (input[i]==';')
 		{
+			pipe_number=0;
 			flag = 0;
 			j = 0, k = 0, l = 0, i++;
 			quote_flag = 0;
@@ -115,6 +150,27 @@ void parse_input(){
 		}		
 		else 
 		{
+			if (input[i+1]=='|')
+			{
+				flag = 0;
+				j = 0, k = 0, l = 0, i++;
+				quote_flag = 0;
+				output_file_index = 0;
+				input_file_index = 0;
+				output_redirect_flag = 0;
+				int fildes[2];
+				if(pipe(fildes) != 0)
+	      			perror("pipe failed");
+	      		pipes[pipe_number*2] = fildes[0];
+	      		pipes[pipe_number*2+1] = fildes[1];
+    	  		pipe_number++;				
+	      		parsed[current_command].o_fd = fildes[1];
+				current_command++;
+	      		parsed[current_command].i_fd = fildes[0];
+				parsed[current_command].command = (char *)malloc(1024);
+				parsed[current_command].outputfile = (char *)malloc(1024);
+				parsed[current_command].inputfile = (char *)malloc(1024);
+			}
 			if ((input[i+1]=='>')&&(input[i+2]!='>'))
 			{
 				redirect_flag = 1;
