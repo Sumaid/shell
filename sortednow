@@ -1,0 +1,35 @@
+<    	}
+> 	{
+> 	}
+> 	}
+---
+---
+18,20c18,19
+22,25c21,42
+> 			break;
+< 	char cur[1024];
+> 		d_gap = (d_gap + 1)%gap;
+> 			dprintf(parsed[current_command].o_fd, "%d %s %d, %02d:%02d:%02d\n", tm.tm_mday, mon, 1900+tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec);	
+< 	    dprintf(parsed[current_command].o_fd, "%s\n", cur);
+<    	else 
+> 		if (d_gap==0)
+< 	if (getcwd(cur, sizeof(cur)) != NULL) 		
+> 	if (parsed[current_command].arguments_index!=2)
+> 		if (time_duration==duration)
+> 	int d_gap = 0;
+> 	int duration = atoi(parsed[current_command].arguments[1]);
+> 	int gap = atoi(parsed[current_command].arguments[0]);
+> 	int time_duration = 0;
+> 		Mon(1+tm.tm_mon);
+<        perror("getcwd() error");
+> 		printf("Incorrect Number of arguments\n");
+> 		printf("usage: clock -t [Delay] -n [Duration]\n");
+> 		sleep(1);
+> 		struct tm tm = *localtime(t);
+> 		time_duration++;
+> 		time_t *t;
+> 		t = malloc(1024);
+> 		*t = time(0);
+< void pwd(){
+> void self_clock(){
+> 	while (1)

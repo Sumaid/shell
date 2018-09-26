@@ -1,0 +1,167 @@
+
+
+
+
+
+
+
+
+
+
+
+        {	
+        {	
+        }
+        }
+        	{
+        	}
+    {
+    {
+    }
+    }
+   	}
+   	} 
+}
+}
+}
+}
+}
+	{
+	}
+		{
+		{
+		}
+		}
+			{
+			{
+			}
+			}
+				{
+				{
+				{
+				}
+				}
+				}
+char *cur_input;
+	char hostname[1024];
+char *input;
+char mon[4];
+char shell_home[1024];
+char *shell_prompt;
+char *shell_pwd;
+char *state;
+   	command_loop();
+command_struct parsed[1024];
+			continue;
+		current_command = 0;
+		current_command = 0;
+			current_command += 1;
+					current_command += pipe_number;
+   	else {
+				else
+				else
+        	else if (redirect_flag == 2)
+				else if(WIFSIGNALED(status))
+					execute_input();
+		for (i=1; i<pid_top; i++)
+			free_command();
+		free(shell_prompt);
+	gethostname(hostname, 1023);
+	hostname[1023] = '\0';
+	if (getcwd(shell_home, sizeof(shell_home)) != NULL) {
+		if (io_decider()<0)
+        	if (parsed[current_command].i_fd<0)
+    if (parsed[current_command].inputfile!=NULL)
+    if (parsed[current_command].outputfile!=NULL)
+				if (pipe_number > 0)
+        	if (redirect_flag == 1)
+			if (strcmp(parsed[current_command].command, ""))
+    	if (strlen(parsed[current_command].inputfile))
+    	if (strlen(parsed[current_command].outputfile))
+			if (waitpid(pid_stack[i], &status, WNOHANG) > 0)
+				if (WIFEXITED(status) > 0) 
+#include "cd.h"
+#include "clock.h"
+#include <dirent.h>
+#include "echo.h"
+#include <errno.h>
+#include "execute_input.h"
+#include <fcntl.h>
+#include "globals.h"
+#include <grp.h>
+#include "ls.h"
+#include <malloc.h>
+#include "parse_input.h"
+#include "pinfo.h"
+#include <pwd.h>
+#include "pwd.h"
+#include "read_input.h"
+#include "remindme.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
+//Initialize Shell Home Directory
+	int checker = 1;
+int commands_index; 
+int current_command;
+		int i;
+int io_decider(){
+		int l = current_command;
+int main(){
+int main_pid;
+int pid_stack[1024];
+int pid_top;
+int redirect_flag;
+			int status;
+int vm_result;
+   	main_pid = (int)getpid();
+	parsed[current_command].arguments_index = 0;
+	parsed[current_command].flags_index = 0;
+        	parsed[current_command].i_fd = open(parsed[current_command].inputfile, O_RDONLY);
+        		parsed[current_command].o_fd = open(parsed[current_command].outputfile, O_WRONLY | O_APPEND | O_CREAT, 00644);
+        		parsed[current_command].o_fd = open(parsed[current_command].outputfile, O_WRONLY | O_CREAT, 00644);
+		parse_input();		
+       perror("getcwd() error");
+   	pid_stack[pid_top] = main_pid;
+   	pid_top++;
+					pipeexecute_input();
+		pipe_number = 0;
+    	printf("--- input file is %s ---\n", parsed[current_command].inputfile);
+    	printf("--- output file is %s ---\n", parsed[current_command].outputfile);
+        		printf("%s: No such file or directory\n", parsed[current_command].inputfile);
+		printf("%s", shell_prompt);
+					printf("%s with pid %d exited abnormally\n", proc_stack[i], pid_stack[i]);
+					printf("%s with pid %d exited normally\n", proc_stack[i], pid_stack[i]);
+					printf("%s with pid %d exited with signal\n", proc_stack[i], pid_stack[i]);
+		prompt();
+		read_input();
+	return 0;
+       return 1;
+    return 1;
+        		return parsed[current_command].i_fd;
+//Running Loop which checks for command entered   	
+   	shell_dir();
+	shell_prompt = (char *)malloc(1024);
+   	strcat(shell_prompt, ">");
+   	strcat(shell_prompt, ":");
+   	strcat(shell_prompt, "@");
+   	strcat(shell_prompt, hostname);
+   	strcat(shell_prompt, shell_pwd);
+   	strcat(shell_prompt, unameData.sysname);
+   	strcpy(proc_stack[pid_top],"shell");
+   	strcpy(shell_prompt, "<");
+	struct utsname unameData;
+//To get system name
+//To get user name	
+	uname(&unameData);
+void command_loop(){
+void free_command(){
+void prompt(){
+	while(1)
+		while (current_command < l + 1)

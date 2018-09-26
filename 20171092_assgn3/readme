@@ -1,0 +1,37 @@
+												Interactive User Defined Shell
+
+Instructions:
+  1)run make all and then ./shell
+  2)"quit" to terminate shell program
+
+
+7)Background processes: Any command invoked with "&" is treated as background
+command. This implies that this shell will spawn that process and doesn't wait for
+the process to exit. It will keep taking user commands
+  If the background process exits then the shell displays the appropriate
+message to the user.
+eg.
+  emacs with pid 456 exited normally
+  To run a command in background:
+  
+  command & 
+
+1) > is for redirecting output to a file(replacing)
+2) >> is for redirecting output to a file(appending)
+3) file name within double quotes is accepted
+4) ls > "file  name" or ls>"file name" or ls      >"adsads" all cases work
+5) wc -l < filename > outputfile or wc -l > outputfile < filename (for input + output redirection)
+6) Multiple pipes
+7) Pipes with redirection
+8) Piped command in background
+9) setenv var [value]
+10) unsetenv var
+11) jobs
+12) kjob <jobNumber> <signalNumber>
+13) fg <jobNumber>
+14) bg <jobNumber>
+15) overkill
+16) quit
+17) CTRL-Z
+18) CTRL-C
+

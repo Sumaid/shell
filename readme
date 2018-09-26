@@ -2,7 +2,7 @@
 
 Instructions:
   1)run make all and then ./shell
-  2)"exit" to terminate shell program
+  2)"quit" to terminate shell program
 
 
 1)Shell Prompt with username and Operating system name appears.Current directory also appears.
@@ -82,3 +82,6 @@ Redirection:
 3) file name within double quotes is accepted
 4) ls > "file  name" or ls>"file name" or ls      >"adsads" all cases work
 5) wc -l < filename > outputfile or wc -l > outputfile < filename (for input + output redirection)
+6) Multiple pipes
+7) Pipes with redirection
+8) Piped command in background

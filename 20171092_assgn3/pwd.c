@@ -15,15 +15,12 @@
 #include "globals.h"
 
 
-void read_input(){
-	input = (char *)malloc(1024);
-	while(1)
+void pwd(){
+	char cur[1024];
+	if (getcwd(cur, sizeof(cur)) != NULL) 		
 	{
-		char temp;
-		scanf("%c", &temp);
-		if (temp=='\n')
-			break;
-    		strcat(input, &temp);
-	}
-	printed = 0;
+	    dprintf(parsed[current_command].o_fd, "%s\n", cur);
+   	}
+   	else 
+       perror("getcwd() error");
 }
